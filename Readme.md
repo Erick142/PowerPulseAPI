@@ -1,0 +1,1 @@
+para levantar usar: docker compose up
