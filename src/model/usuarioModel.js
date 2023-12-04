@@ -24,6 +24,10 @@ const usuarioSchema = new mongoose.Schema({
     peso:{
         type: Number,
         required: false
+    },
+    edad: {
+        type: Number,
+        required: false
     }
 }
 )

@@ -66,4 +66,30 @@ async function verMiPerfil(req,res){
         return res.status(400).json({error: error})
     }
 }
-export {registrarUsuario, login, verMiPerfil};
+async function editarPerfil(req,res){
+    try {
+        const {token, nombre, peso, altura, edad} = req.body;
+        let iduser= jwt.verify(token,SECRETKEY);
+        console.log(iduser)
+        let user = await Usuario.findById(iduser.id);
+        user.nombre= nombre;
+        user.peso= peso;
+        user.altura= altura;
+        user.edad=edad;
+        user = await user.save();
+        const enviar={
+            _id: user._id,
+            nombre: user.nombre,
+            email: user.email,
+            imagen: user.imagen,
+            altura: user.altura,
+            peso: user.peso,
+            edad: user.edad,
+        }
+        return res.status(200).json({usuario: enviar});
+    } catch (error) {
+        console.log(error)
+        return res.status(400).json({error: error})
+    }
+}
+export {registrarUsuario, login, verMiPerfil, editarPerfil};
