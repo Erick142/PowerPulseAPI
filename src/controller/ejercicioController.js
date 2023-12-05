@@ -260,4 +260,14 @@ function obtenerEjercicioPorNombre(nombre){
     return ejercicios.find((e)=>e.nombre==nombre);
 }
 
-export {obtenerEjerciciosPorMusculo, obtenerEjerciciosAleatorio, verEjercicios, obtenerEjercicioPorNombre};
+function guardarEjercicio(req, res){
+    try{
+        const {ejercicio} = req.body;
+        ejercicios.push(ejercicio);
+        return res.status(200).json({ejercicio});
+    }catch (error) {
+        console.log(error)
+        return res.status(500).json({error: error});
+    }
+}
+export {obtenerEjerciciosPorMusculo, obtenerEjerciciosAleatorio, verEjercicios, obtenerEjercicioPorNombre, guardarEjercicio};

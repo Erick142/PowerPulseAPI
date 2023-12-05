@@ -91,6 +91,9 @@ async function primerEntrenamiento(musculos){
 async function entrenamientoConData(musculos, usuario) {
     const ejercicios = [];
     let nDeEjercicios = 3;
+    if(musculos.length>3){
+        nDeEjercicios= musculos.length;
+    }
     const entrenamientosRecientes = await Entrenamiento.find({
         usuario: usuario,
     })
@@ -171,7 +174,7 @@ async function verMiProgreso(req, res){
         const usuario = await Usuario.findById(idUsuario);
 
         let entrenamientos = await Entrenamiento.find({usuario: usuario}).populate("ejercicios");
-        const years= []
+        /*const years= []
 
         for (const entrenamiento of entrenamientos) {
             const year= entrenamiento.fecha.getFullYear();
@@ -213,6 +216,8 @@ async function verMiProgreso(req, res){
             diaObject.entrenamientos.push(entrenamiento);
         }
         return res.status(200).json({years: years});
+        */
+        return res.status(200).json({entrenamientos});
     } catch (error) {
         console.log(error);
         return res.status(500).json({error: error});
@@ -232,11 +237,41 @@ async function verRutina(req, res){
     }
 }
 
+async function buscarEntrenamientosPorFechaYUsuario(req, res) {
+    try {
+        const { dia, mes, year, token } = req.body;
+
+        // Decodificar el token para obtener el ID del usuario
+        const decodedToken = jwt.verify(token, SECRETKEY);
+        const idUsuario = decodedToken.id;
+
+        // Obtener el usuario
+        const usuario = await Usuario.findById(idUsuario);
+
+        // Convertir los parámetros en un objeto Date
+        const fechaBusqueda = new Date(year, mes-1 , dia); // El mes en JavaScript es de 0 a 11, por eso restamos 1
+
+        // Buscar entrenamientos del usuario en la base de datos con la fecha proporcionada
+        const entrenamientos = await Entrenamiento.find({
+            usuario: usuario,
+            fecha: {
+                $gte: fechaBusqueda, // Mayor o igual a la fecha de búsqueda
+                $lt: new Date(fechaBusqueda.getTime() + 24 * 60 * 60 * 1000) // Menor a la siguiente fecha
+            }
+        }).populate("ejercicios");
+
+        return res.status(200).json(entrenamientos);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: error.message || 'Error interno del servidor' });
+    }
+}
+
 async function completarRutina(req, res){
     try {
         const {id} = req.params;
 
-        let entrenamiento= await Entrenamiento.findById(id);
+        let entrenamiento= await Entrenamiento.findById(id).populate("ejercicios");
         
         entrenamiento.completado= true;
         entrenamiento = await entrenamiento.save();
@@ -308,4 +343,4 @@ async function crearEntrenamientoPersonalizado(req, res){
     }
 }
 
-export {generarEntrenamientoAutogenerado, verMiProgreso, completarRutina, verRutina, terminarRutina, crearEntrenamientoPersonalizado};
+export {generarEntrenamientoAutogenerado, verMiProgreso, completarRutina, verRutina, terminarRutina, crearEntrenamientoPersonalizado,buscarEntrenamientosPorFechaYUsuario};
