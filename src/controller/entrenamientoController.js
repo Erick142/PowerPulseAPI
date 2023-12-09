@@ -4,6 +4,7 @@ import { obtenerEjerciciosPorMusculo, obtenerEjerciciosAleatorio, obtenerEjercic
 import Ejercicio from "../model/ejercicioModel.js";
 import jwt from "jsonwebtoken";
 import { SECRETKEY } from "./usuarioController.js";
+import moment from "moment-timezone";
 
 async function generarEntrenamientoAutogenerado(req, res){
     try{
@@ -20,10 +21,14 @@ async function generarEntrenamientoAutogenerado(req, res){
         }else{
             ejercicios = await entrenamientoConData(musculos, usuario);
         }
+        const fechaActualSantiago = moment().tz('America/Santiago').format("YYYY-MM-DDTHH:mm:ss.SSS[Z]");
+        console.log(fechaActualSantiago);
+        
+
         const entrenamiento= await Entrenamiento.create(
             {
                 usuario: usuario,
-                fecha: new Date(),
+                fecha: fechaActualSantiago,
                 completado: false,
                 terminado: false,
                 tiempo: 0,
@@ -31,11 +36,12 @@ async function generarEntrenamientoAutogenerado(req, res){
                 tipo: "AUTOGENERADO",
                 ejercicios: ejercicios,
             }
-        )
-        return res.status(200).json({entrenamiento});
+        );
+        console.log(entrenamiento);
+        return res.status(200).json(entrenamiento);
     }catch(e){
         console.log(e)
-        return res.status(200).json({error: e});
+        return res.status(500).json({error: e});
     }
 }
 
@@ -228,7 +234,7 @@ async function verRutina(req, res){
     try {
         const {id} = req.params;
 
-        const entrenamiento= await Entrenamiento.findById(id);
+        const entrenamiento= await Entrenamiento.findById(id).populate("usuario").populate("ejercicios");
 
         return res.status(200).json(entrenamiento);
     } catch (error) {
@@ -276,7 +282,7 @@ async function completarRutina(req, res){
         entrenamiento.completado= true;
         entrenamiento = await entrenamiento.save();
 
-        return res.status(200).json(entrenamiento);
+        return res.status(200).json({exito: true});
     } catch (error) {
         console.log(error)
         return res.status(500).json({error: error});
